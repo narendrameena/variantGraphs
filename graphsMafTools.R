@@ -9,16 +9,40 @@ biocLite("VariantAnnotation")
 biocLite("Biostrings")
 
 #Install maftools from github repository.
+#
 library("devtools")
-install_github(repo = "PoisonAlien/maftools")
+#install_github(repo = "PoisonAlien/maftools")
 
-
-var.annovar = system.file("extdata", "variants.hg19_multianno.txt", package = "maftools")
-
+library(maftools)
 
 ##annovar output into MAF using annovarToMaf
-var.annovar.maf = annovarToMaf(annovar = var.annovar, Center = 'CSI-NUS', refBuild = 'hg19', 
-                               tsbCol = 'Tumor_Sample_Barcode', table = 'ensGene')
-## Converting Ensemble Gene IDs into HGNC gene symbols.
+var.annovar.maf = annovarToMaf(annovar = "/Users/naru/Documents/BISR/WESPipelinePaper/benchmarking/SRR622461/gatk/SRR622461.GATK.haplotypecaller.raw.hg19_multianno.txt", 
+                                refBuild = 'hg19',table = 'ensGene', sep = "\t", tsbCol = "Tumor_Sample_Barcode")
 
-## Done! Original ensemble gene IDs are preserved under field name ens_id
+
+laml = read.maf(maf = var.annovar.maf, removeSilent = TRUE, useAll = FALSE)
+#Typing laml shows basic summary of MAF file.
+laml
+
+#Shows sample summry.
+getSampleSummary(laml)
+
+
+#Shows frequently mutated genes.
+getGeneSummary(laml)
+
+#Shows all fields in MAF
+getFields(laml)
+
+
+# Plotting MAF summary
+plotmafSummary(maf = laml, rmOutlier = TRUE, addStat = 'median', dashboard = TRUE, titvRaw = FALSE)
+
+
+#We will draw oncoplots for top ten mutated genes. (Removing non-mutated samples from the plot for better visualization)
+oncoplot(maf = laml, top = 10, removeNonMutated = TRUE)
+genesToBarcodes(maf = laml, genes = 'DNMT3A')
+plotVaf(maf = laml,vafCol = 'Tumor_Sample_Barcode')
+laml.titv = titv(maf = laml, plot = FALSE, useSyn = TRUE)
+#plot titv summary
+plotTiTv(res = laml.titv)
